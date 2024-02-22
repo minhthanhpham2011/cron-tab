@@ -2,7 +2,7 @@ name: Daily Push and Create Python File
 
 on:
   schedule:
-    - cron: "0 */5 * * * *" # Chạy vào mỗi 5p
+    - cron: "*/5 * * * *" # Chạy vào mỗi 5p
 
 jobs:
   push_and_create_file:
