@@ -1,0 +1,33 @@
+name: Daily Push and Create Python File
+
+on:
+  schedule:
+    - cron: "0 */12 * * * *" # Chạy vào lúc 12 giờ trưa mỗi ngày
+
+jobs:
+  push_and_create_file:
+    name: Push to GitHub and Create Python File
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Run Bash script
+        run: |
+          # Di chuyển vào thư mục chứa repository của bạn
+          cd ./../../
+
+          # Tạo tên file với timestamp của ngày hiện tại
+          file_name="$(date +'%Y-%m-%d_%H-%M-%S').py"
+
+          # Tạo một file Python mới và ghi vào file
+          echo -e "print('Hello, $(date +'%Y-%m-%d')')" > "$file_name"
+
+          # In ra màn hình "Hello" cùng với ngày hiện tại
+          echo "Hello, $(date +'%Y-%m-%d')"
+
+          # Thực hiện các thao tác git (đẩy code lên GitHub)
+          git add .
+          git commit -m "Automated commit $(date +'%Y-%m-%d')"
+          git push origin master
