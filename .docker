@@ -1,0 +1,17 @@
+# Sử dụng một hình ảnh Ubuntu làm cơ sở
+FROM ubuntu:latest
+
+# Cài đặt Git
+RUN apt-get update && apt-get install -y git
+
+# Cài đặt Python (nếu cần thiết)
+RUN apt-get install -y python3
+
+# Sao chép script và các tệp cần thiết vào bên trong hình ảnh
+COPY ./cron-tab /cron-tab
+
+# Di chuyển vào thư mục chứa repository của bạn
+WORKDIR /cron-tab
+
+# Thực thi script khi container được khởi chạy
+CMD ["bash", "daily_push_and_create_python_file.sh"]

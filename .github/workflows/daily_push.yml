@@ -16,7 +16,9 @@ jobs:
       - name: Run Bash script
         run: |
           # Di chuyển vào thư mục chứa repository của bạn
-          cd ./../../
+          echo "Current directory: $PWD"
+          echo "GitHub workspace directory: $GITHUB_WORKSPACE" 
+          cd ./cron-tab
 
           # Tạo tên file với timestamp của ngày hiện tại
           file_name="$(date +'%Y-%m-%d_%H-%M-%S').py"
