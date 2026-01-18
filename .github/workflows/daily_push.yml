@@ -2,7 +2,9 @@ name: Daily Push and Create Python File
 
 on:
   schedule:
-    - cron: "0 14 * * *" # Chạy 1 lần mỗi ngày lúc 14:00 UTC
+    # Chạy 2 lần mỗi ngày với thời gian ngẫu nhiên dựa trên ngày
+    # Sử dụng modulo để tạo 2 khung giờ khác nhau mỗi ngày
+    - cron: "0 8,20 * * *" # Chạy lúc 8:00 và 20:00 UTC (15:00 và 3:00 sáng VN)
 
 jobs:
   push_and_create_file:
@@ -26,53 +28,83 @@ jobs:
           # Sử dụng ngày hiện tại làm seed để đảm bảo cùng một ngày sẽ có cùng số commit
           DATE_SEED=$(date +'%Y-%m-%d')
           DAY_NUMBER=$(date +%j)
+          CURRENT_HOUR=$(date +%H)
 
           # Tạo số ngẫu nhiên dựa trên ngày (0-999)
           RANDOM_NUM=$(( (DAY_NUMBER * 17 + 23) % 1000 ))
 
-          # Quyết định số lượng commit cho ngày hôm nay (phân phối tự nhiên và đẹp hơn)
+          # Quyết định số lượng commit TỔNG cho ngày hôm nay (phân phối tự nhiên và đẹp hơn)
           # 5% không commit, 8% 1-2 commits, 12% 3-4 commits, 15% 5-6 commits, 
           # 20% 7-8 commits, 18% 9-10 commits, 12% 11-12 commits, 7% 13-15 commits, 3% 16-20 commits
           if [ $RANDOM_NUM -lt 50 ]; then
-            COMMIT_COUNT=0
+            TOTAL_COMMITS=0
           elif [ $RANDOM_NUM -lt 130 ]; then
-            COMMIT_COUNT=$(( 1 + (RANDOM_NUM % 2) ))
+            TOTAL_COMMITS=$(( 1 + (RANDOM_NUM % 2) ))
           elif [ $RANDOM_NUM -lt 250 ]; then
-            COMMIT_COUNT=$(( 3 + (RANDOM_NUM % 2) ))
+            TOTAL_COMMITS=$(( 3 + (RANDOM_NUM % 2) ))
           elif [ $RANDOM_NUM -lt 400 ]; then
-            COMMIT_COUNT=$(( 5 + (RANDOM_NUM % 2) ))
+            TOTAL_COMMITS=$(( 5 + (RANDOM_NUM % 2) ))
           elif [ $RANDOM_NUM -lt 600 ]; then
-            COMMIT_COUNT=$(( 7 + (RANDOM_NUM % 2) ))
+            TOTAL_COMMITS=$(( 7 + (RANDOM_NUM % 2) ))
           elif [ $RANDOM_NUM -lt 780 ]; then
-            COMMIT_COUNT=$(( 9 + (RANDOM_NUM % 2) ))
+            TOTAL_COMMITS=$(( 9 + (RANDOM_NUM % 2) ))
           elif [ $RANDOM_NUM -lt 900 ]; then
-            COMMIT_COUNT=$(( 11 + (RANDOM_NUM % 2) ))
+            TOTAL_COMMITS=$(( 11 + (RANDOM_NUM % 2) ))
           elif [ $RANDOM_NUM -lt 970 ]; then
-            COMMIT_COUNT=$(( 13 + (RANDOM_NUM % 3) ))
+            TOTAL_COMMITS=$(( 13 + (RANDOM_NUM % 3) ))
           else
-            COMMIT_COUNT=$(( 16 + (RANDOM_NUM % 5) ))
+            TOTAL_COMMITS=$(( 16 + (RANDOM_NUM % 5) ))
           fi
 
-          echo "Date: $DATE_SEED | Random seed: $RANDOM_NUM | Commits today: $COMMIT_COUNT"
+          # Chia commit cho 2 lần chạy trong ngày (dựa trên giờ chạy)
+          # Lần 1 (8h UTC): 40-60% commit, Lần 2 (20h UTC): phần còn lại
+          if [ "$CURRENT_HOUR" = "08" ]; then
+            # Lần chạy đầu tiên: 40-60% tổng số commit
+            SPLIT_RATIO=$(( 40 + (DAY_NUMBER * 7) % 21 )) # 40-60%
+            COMMIT_COUNT=$(( (TOTAL_COMMITS * SPLIT_RATIO) / 100 ))
+            SESSION=1
+          else
+            # Lần chạy thứ hai: phần còn lại
+            SPLIT_RATIO=$(( 40 + (DAY_NUMBER * 7) % 21 ))
+            FIRST_SESSION=$(( (TOTAL_COMMITS * SPLIT_RATIO) / 100 ))
+            COMMIT_COUNT=$(( TOTAL_COMMITS - FIRST_SESSION ))
+            SESSION=2
+          fi
 
-          # Nếu không có commit nào, thoát
+          echo "Date: $DATE_SEED | Session: $SESSION | Total commits today: $TOTAL_COMMITS | This session: $COMMIT_COUNT"
+
+          # Nếu không có commit nào cho session này, thoát
           if [ $COMMIT_COUNT -eq 0 ]; then
-            echo "No commits scheduled for today. Skipping..."
+            echo "No commits scheduled for this session. Skipping..."
             exit 0
+          fi
+
+          # Tính offset commit để đánh số đúng (session 2 bắt đầu từ số tiếp theo)
+          if [ "$SESSION" = "2" ]; then
+            SPLIT_RATIO=$(( 40 + (DAY_NUMBER * 7) % 21 ))
+            COMMIT_OFFSET=$(( (TOTAL_COMMITS * SPLIT_RATIO) / 100 ))
+          else
+            COMMIT_OFFSET=0
           fi
 
           # Tạo các commit với thời gian ngẫu nhiên trong ngày
           for i in $(seq 1 $COMMIT_COUNT); do
-            # Tạo timestamp ngẫu nhiên trong ngày (giữa 8h-22h)
-            HOUR_OFFSET=$(( (DAY_NUMBER * 7 + i * 13) % 14 + 8 ))
-            MINUTE_OFFSET=$(( (DAY_NUMBER * 11 + i * 19) % 60 ))
+            COMMIT_NUMBER=$(( COMMIT_OFFSET + i ))
+            # Tạo timestamp ngẫu nhiên trong ngày
+            # Session 1: 8h-14h, Session 2: 14h-22h
+            if [ "$SESSION" = "1" ]; then
+              HOUR_OFFSET=$(( 8 + (DAY_NUMBER * 7 + COMMIT_NUMBER * 13) % 6 ))
+            else
+              HOUR_OFFSET=$(( 14 + (DAY_NUMBER * 11 + COMMIT_NUMBER * 17) % 8 ))
+            fi
+            MINUTE_OFFSET=$(( (DAY_NUMBER * 11 + COMMIT_NUMBER * 19) % 60 ))
             
             # Tạo tên file với timestamp
-            file_name="$(date +'%Y-%m-%d')_commit_${i}_${HOUR_OFFSET}-${MINUTE_OFFSET}.py"
+            file_name="$(date +'%Y-%m-%d')_commit_${COMMIT_NUMBER}_${HOUR_OFFSET}-${MINUTE_OFFSET}.py"
             
             # Tạo nội dung file với một số thay đổi ngẫu nhiên
-            RANDOM_CODE=$(( (DAY_NUMBER * i * 3) % 1000 ))
-            echo -e "# Auto-generated on $DATE_SEED\n# Commit $i of $COMMIT_COUNT\nprint('Hello from commit $i, value: $RANDOM_CODE')\nprint('Date: $DATE_SEED')" > "$file_name"
+            RANDOM_CODE=$(( (DAY_NUMBER * COMMIT_NUMBER * 3) % 1000 ))
+            echo -e "# Auto-generated on $DATE_SEED\n# Commit $COMMIT_NUMBER of $TOTAL_COMMITS (Session $SESSION)\nprint('Hello from commit $COMMIT_NUMBER, value: $RANDOM_CODE')\nprint('Date: $DATE_SEED')" > "$file_name"
             
             # Commit với message đa dạng hơn
             COMMIT_MESSAGES=(
@@ -97,13 +129,13 @@ jobs:
               "Refactor: optimize algorithms"
               "Add: logging functionality"
             )
-            MSG_INDEX=$(( (DAY_NUMBER * i) % ${#COMMIT_MESSAGES[@]} ))
+            MSG_INDEX=$(( (DAY_NUMBER * COMMIT_NUMBER) % ${#COMMIT_MESSAGES[@]} ))
             COMMIT_MSG="${COMMIT_MESSAGES[$MSG_INDEX]}"
             
             git add "$file_name"
             git commit -m "$COMMIT_MSG" --date="$DATE_SEED ${HOUR_OFFSET}:${MINUTE_OFFSET}:00"
             
-            echo "Created commit $i/$COMMIT_COUNT: $COMMIT_MSG"
+            echo "Created commit $COMMIT_NUMBER/$TOTAL_COMMITS (Session $SESSION): $COMMIT_MSG"
           done
 
           # Push tất cả commits cùng lúc
