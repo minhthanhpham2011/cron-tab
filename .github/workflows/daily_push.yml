@@ -23,7 +23,6 @@ jobs:
 
       - name: Run Bash script
         run: |
-          # Đảm bảo thư mục logging tồn tại (SAU KHI đã cd vào workspace)
           mkdir -p ./logging
           echo "Logging directory verified: $(ls -d ./logging 2>/dev/null && echo 'exists' || echo 'created')"
 
