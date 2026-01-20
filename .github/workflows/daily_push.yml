@@ -21,7 +21,12 @@ jobs:
           cd $GITHUB_WORKSPACE && pwd
 
           # Tạo thư mục logging nếu chưa tồn tại để lưu các file
-          mkdir -p ./logging
+          if [ ! -d "./logging" ]; then
+            mkdir -p ./logging
+            echo "Created logging directory"
+          else
+            echo "Logging directory already exists"
+          fi
 
           git config --global user.email "minhthanh95ptit@gmail.com"
           git config --global user.name "Minh Thanh Pham"
