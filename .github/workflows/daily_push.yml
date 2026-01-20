@@ -5,6 +5,7 @@ on:
     # Chạy 2 lần mỗi ngày với thời gian ngẫu nhiên dựa trên ngày
     # Sử dụng modulo để tạo 2 khung giờ khác nhau mỗi ngày
     - cron: "0 8,20 * * *" # Chạy lúc 8:00 và 20:00 UTC (15:00 và 3:00 sáng VN)
+  workflow_dispatch: # Cho phép trigger thủ công từ GitHub UI
 
 jobs:
   push_and_create_file:
