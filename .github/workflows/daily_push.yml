@@ -15,18 +15,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Create logging directory
+        run: |
+          mkdir -p ./logging
+          echo "Logging directory created/verified"
+
       - name: Run Bash script
         run: |
           # Di chuyển vào thư mục chứa repository của bạn
           cd $GITHUB_WORKSPACE && pwd
 
-          # Tạo thư mục logging nếu chưa tồn tại để lưu các file
-          if [ ! -d "./logging" ]; then
-            mkdir -p ./logging
-            echo "Created logging directory"
-          else
-            echo "Logging directory already exists"
-          fi
+          # Đảm bảo thư mục logging tồn tại
+          mkdir -p ./logging
+          ls -la ./logging || echo "Logging directory check"
 
           git config --global user.email "minhthanh95ptit@gmail.com"
           git config --global user.name "Minh Thanh Pham"
