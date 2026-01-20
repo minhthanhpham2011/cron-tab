@@ -20,7 +20,8 @@ jobs:
           # Di chuyển vào thư mục chứa repository của bạn
           cd $GITHUB_WORKSPACE && pwd
 
-          cd ./logging
+          # Tạo thư mục logging nếu chưa tồn tại để lưu các file
+          mkdir -p ./logging
 
           git config --global user.email "minhthanh95ptit@gmail.com"
           git config --global user.name "Minh Thanh Pham"
@@ -99,8 +100,8 @@ jobs:
             fi
             MINUTE_OFFSET=$(( (DAY_NUMBER * 11 + COMMIT_NUMBER * 19) % 60 ))
             
-            # Tạo tên file với timestamp
-            file_name="$(date +'%Y-%m-%d')_commit_${COMMIT_NUMBER}_${HOUR_OFFSET}-${MINUTE_OFFSET}.py"
+            # Tạo tên file với timestamp trong thư mục logging
+            file_name="./logging/$(date +'%Y-%m-%d')_commit_${COMMIT_NUMBER}_${HOUR_OFFSET}-${MINUTE_OFFSET}.py"
             
             # Tạo nội dung file với một số thay đổi ngẫu nhiên
             RANDOM_CODE=$(( (DAY_NUMBER * COMMIT_NUMBER * 3) % 1000 ))
