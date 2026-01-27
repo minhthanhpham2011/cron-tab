@@ -37,27 +37,24 @@ jobs:
           # Tạo số ngẫu nhiên dựa trên ngày (0-999)
           RANDOM_NUM=$(( (DAY_NUMBER * 17 + 23) % 1000 ))
 
-          # Quyết định số lượng commit TỔNG cho ngày hôm nay (phân phối tự nhiên và đẹp hơn)
-          # 5% không commit, 8% 1-2 commits, 12% 3-4 commits, 15% 5-6 commits, 
-          # 20% 7-8 commits, 18% 9-10 commits, 12% 11-12 commits, 7% 13-15 commits, 3% 16-20 commits
-          if [ $RANDOM_NUM -lt 50 ]; then
+          # Quyết định số lượng commit TỔNG cho ngày hôm nay (phân phối tự nhiên như developer thật)
+          # 18% không commit (ngày nghỉ, cuối tuần), 22% 1-3 commits (ngày ít), 
+          # 30% 4-8 commits (ngày bình thường), 20% 9-15 commits (ngày nhiều), 10% 16-25 commits (ngày rất nhiều)
+          if [ $RANDOM_NUM -lt 180 ]; then
+            # 18% - Không commit (ngày nghỉ, cuối tuần)
             TOTAL_COMMITS=0
-          elif [ $RANDOM_NUM -lt 130 ]; then
-            TOTAL_COMMITS=$(( 1 + (RANDOM_NUM % 2) ))
-          elif [ $RANDOM_NUM -lt 250 ]; then
-            TOTAL_COMMITS=$(( 3 + (RANDOM_NUM % 2) ))
           elif [ $RANDOM_NUM -lt 400 ]; then
-            TOTAL_COMMITS=$(( 5 + (RANDOM_NUM % 2) ))
-          elif [ $RANDOM_NUM -lt 600 ]; then
-            TOTAL_COMMITS=$(( 7 + (RANDOM_NUM % 2) ))
-          elif [ $RANDOM_NUM -lt 780 ]; then
-            TOTAL_COMMITS=$(( 9 + (RANDOM_NUM % 2) ))
+            # 22% - Ngày ít commit (1-3 commits)
+            TOTAL_COMMITS=$(( 1 + (RANDOM_NUM % 3) ))
+          elif [ $RANDOM_NUM -lt 700 ]; then
+            # 30% - Ngày bình thường (4-8 commits)
+            TOTAL_COMMITS=$(( 4 + (RANDOM_NUM % 5) ))
           elif [ $RANDOM_NUM -lt 900 ]; then
-            TOTAL_COMMITS=$(( 11 + (RANDOM_NUM % 2) ))
-          elif [ $RANDOM_NUM -lt 970 ]; then
-            TOTAL_COMMITS=$(( 13 + (RANDOM_NUM % 3) ))
+            # 20% - Ngày nhiều commit (9-15 commits)
+            TOTAL_COMMITS=$(( 9 + (RANDOM_NUM % 7) ))
           else
-            TOTAL_COMMITS=$(( 16 + (RANDOM_NUM % 5) ))
+            # 10% - Ngày rất nhiều commit (16-25 commits)
+            TOTAL_COMMITS=$(( 16 + (RANDOM_NUM % 10) ))
           fi
 
           # Chia commit cho 2 lần chạy trong ngày (dựa trên giờ chạy)
