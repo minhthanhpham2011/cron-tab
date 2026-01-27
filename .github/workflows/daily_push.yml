@@ -38,10 +38,10 @@ jobs:
           RANDOM_NUM=$(( (DAY_NUMBER * 17 + 23) % 1000 ))
 
           # Quyết định số lượng commit TỔNG cho ngày hôm nay (phân phối tự nhiên như developer thật)
-          # 18% không commit (ngày nghỉ, cuối tuần), 22% 1-3 commits (ngày ít), 
+          # 18% không commit (random), 22% 1-3 commits (ngày ít), 
           # 30% 4-8 commits (ngày bình thường), 20% 9-15 commits (ngày nhiều), 10% 16-25 commits (ngày rất nhiều)
           if [ $RANDOM_NUM -lt 180 ]; then
-            # 18% - Không commit (ngày nghỉ, cuối tuần)
+            # 18% - Không commit (random, không phụ thuộc vào thứ trong tuần)
             TOTAL_COMMITS=0
           elif [ $RANDOM_NUM -lt 400 ]; then
             # 22% - Ngày ít commit (1-3 commits)
